@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>UVA SDS • Lanternfly Image Uploader & Gallery</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family:sans-serif; background:#fafafa; margin:1rem; }
+    header { color:#232D4B; margin-bottom:1rem; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:1rem; }
+    img { width:100%; border-radius:8px; }
+    .cap { font-size:0.8rem; color:#555; text-align:center; }
+  </style>
+</head>
+<body>
+  <header><h1>Lanternfly Tracker</h1></header>
+  <input type="file" id="f" accept="image/*" capture="environment">
+  <button onclick="send()">Upload</button>
+  <div id="note"></div>
+  <div class="grid" id="grid"></div>
+
+  <script>
+  async function send(){
+    const fd=new FormData();
+    fd.append("file",document.getElementById("f").files[0]);
+    const r=await fetch("/api/v1/upload",{method:"POST",body:fd});
+    const j=await r.json();
+    if(j.ok){ alert("Uploaded: "+j.url); loadGallery(); }
+    else alert("Error: "+j.error);
+  }
+  async function loadGallery(){
+    const r=await fetch("/api/v1/gallery");
+    const j=await r.json();
+    const g=document.getElementById("grid");
+    g.innerHTML="";
+    if(j.ok){
+      j.gallery.forEach(u=>{
+        const d=document.createElement("div");
+        const i=document.createElement("img");
+        i.src=u;
+        const c=document.createElement("div");
+        c.className="cap"; c.textContent=u.split("/").pop();
+        d.appendChild(i); d.appendChild(c);
+        g.appendChild(d);
+      });
+    }
+  }
+  document.addEventListener("DOMContentLoaded",loadGallery);
+  </script>
+</body>
+</html>
